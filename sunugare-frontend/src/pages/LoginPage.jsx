@@ -1,62 +1,98 @@
+// ══════════════════════════════════════════════════════════════════
+// src/pages/LoginPage.jsx
+// ══════════════════════════════════════════════════════════════════
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { Lock, Mail } from 'lucide-react';
 
 export default function LoginPage() {
-  const { login, loading } = useAuth();
-  const [form, setForm]   = useState({ email: '', password: '' });
-  const [error, setError] = useState('');
+  const { login }  = useAuth();
+  const navigate   = useNavigate();
+  const [form, setForm]       = useState({ email: '', password: '' });
+  const [error, setError]     = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    const result = await login(form.email, form.password);
-    if (!result.success) setError(result.message);
+    setLoading(true);
+    try {
+      await login(form.email, form.password);
+      navigate('/voyages');
+    } catch {
+      setError('Email ou mot de passe incorrect.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
+    <div
+      className="min-h-screen flex items-center justify-center px-4"
+      style={{ background: 'linear-gradient(135deg, #0f0c29 0%, #1a1a2e 50%, #16213e 100%)' }}
+    >
+      <div className="glass-card p-8 w-full max-w-md">
+        {/* Logo */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-green-600">Sunugare</h1>
-          <p className="text-gray-500 mt-2">Gestion de Gare Routiere</p>
+          <div className="text-6xl mb-3">🚌</div>
+          <h1 className="text-4xl font-bold text-white tracking-wide">
+            Sunu<span className="underline decoration-[#e8a045]">gare</span>
+          </h1>
+          <p className="text-white/50 text-sm mt-1">Gestion de Gare Routière</p>
         </div>
 
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 mb-4 text-sm">
-            {error}
-          </div>
-        )}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <div className="bg-red-500/20 border border-red-400/30 text-red-300 text-sm rounded-xl px-4 py-3">
+              {error}
+            </div>
+          )}
 
-        <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <input
-              type="email"
-              required
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-              placeholder="admin@sunugare.sn"
-            />
+            <label className="block text-white/60 text-sm mb-1.5">Adresse email</label>
+            <div className="relative">
+              <Mail size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" />
+              <input
+                type="email"
+                className="input-glass pl-9"
+                placeholder="admin@sunugare.sn"
+                value={form.email}
+                onChange={set('email')}
+                required
+              />
+            </div>
           </div>
+
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Mot de passe</label>
-            <input
-              type="password"
-              required
-              value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-            />
+            <label className="block text-white/60 text-sm mb-1.5">Mot de passe</label>
+            <div className="relative">
+              <Lock size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" />
+              <input
+                type="password"
+                className="input-glass pl-9"
+                placeholder="••••••••"
+                value={form.password}
+                onChange={set('password')}
+                required
+              />
+            </div>
           </div>
+
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white font-semibold py-3 rounded-lg transition-colors"
+            className="btn-primary w-full py-3 text-base justify-center mt-2 disabled:opacity-60"
           >
-            {loading ? 'Connexion...' : 'Se connecter'}
+            {loading ? 'Connexion en cours...' : 'Se connecter'}
           </button>
         </form>
+
+        <p className="text-center text-white/20 text-xs mt-6">
+          © 2024 SUNUGARE — Gare des Baux Maraîchers
+        </p>
       </div>
     </div>
   );

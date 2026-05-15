@@ -1,93 +1,109 @@
+// ══════════════════════════════════════════════════════════════════
+// src/components/reservations/ReservationForm.jsx
+// Formulaire de réservation glassmorphism
+// ══════════════════════════════════════════════════════════════════
 import { useState } from 'react';
 import { useApi } from '../../hooks/useApi';
+import { User, Phone, Users } from 'lucide-react';
 
 export default function ReservationForm({ voyage, onSuccess }) {
   const { post, loading, error } = useApi();
   const [form, setForm] = useState({
-    voyage_id:          voyage?.id || '',
     passager_nom:       '',
     passager_telephone: '',
     nombre_places:      1,
   });
 
+  const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }));
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const result = await post('/reservations', form);
-    if (result.success) {
-      alert(`Billet reserve ! Numero: ${result.data.numero_ticket}`);
-      onSuccess();
-    }
+    const result = await post('/reservations', {
+      ...form,
+      voyage_id: voyage.id,
+    });
+    if (result.success) onSuccess(result.data);
   };
-
-  const total = voyage ? (voyage.prix * form.nombre_places).toLocaleString('fr-SN') : 0;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Infos voyage */}
+      <div className="glass-card p-4 bg-white/5">
+        <p className="text-white/50 text-xs uppercase tracking-wider mb-1">Voyage sélectionné</p>
+        <p className="text-white font-semibold">{voyage.origine} → {voyage.destination}</p>
+        <p className="text-[#e8a045] text-sm mt-0.5">
+          {Number(voyage.prix).toLocaleString('fr-SN')} FCFA / place
+        </p>
+      </div>
+
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 text-sm">{error}</div>
-      )}
-
-      {voyage && (
-        <div className="bg-green-50 border border-green-100 rounded-lg p-4 text-sm">
-          <p className="font-semibold text-green-800">{voyage.origine} - {voyage.destination}</p>
-          <p className="text-green-600 mt-1">
-            Depart: {new Date(voyage.heure_depart).toLocaleString('fr-SN')}
-          </p>
-          <p className="text-green-600">
-            Prix: {Number(voyage.prix).toLocaleString('fr-SN')} FCFA / place
-          </p>
-          <p className="text-green-600">{voyage.places_disponibles} places disponibles</p>
+        <div className="bg-red-500/20 border border-red-400/30 text-red-300 text-sm rounded-xl px-4 py-3">
+          {error}
         </div>
       )}
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Nom complet du passager</label>
-        <input
-          type="text"
-          required
-          value={form.passager_nom}
-          onChange={(e) => setForm({ ...form, passager_nom: e.target.value })}
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Telephone</label>
-        <input
-          type="tel"
-          required
-          value={form.passager_telephone}
-          onChange={(e) => setForm({ ...form, passager_telephone: e.target.value })}
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Nombre de places</label>
-        <input
-          type="number"
-          required
-          min="1"
-          max={voyage?.places_disponibles || 10}
-          value={form.nombre_places}
-          onChange={(e) => setForm({ ...form, nombre_places: parseInt(e.target.value) })}
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-        />
-      </div>
-
-      <div className="bg-gray-50 rounded-lg p-4">
-        <div className="flex justify-between items-center">
-          <span className="text-sm font-medium text-gray-700">Montant total</span>
-          <span className="text-lg font-bold text-green-600">{total} FCFA</span>
+        <label className="block text-white/60 text-sm mb-1.5">Nom du passager</label>
+        <div className="relative">
+          <User size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" />
+          <input
+            type="text"
+            className="input-glass pl-9"
+            placeholder="Moussa Diallo"
+            value={form.passager_nom}
+            onChange={set('passager_nom')}
+            required
+          />
         </div>
+      </div>
+
+      <div>
+        <label className="block text-white/60 text-sm mb-1.5">Téléphone</label>
+        <div className="relative">
+          <Phone size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" />
+          <input
+            type="tel"
+            className="input-glass pl-9"
+            placeholder="77 XXX XX XX"
+            value={form.passager_telephone}
+            onChange={set('passager_telephone')}
+          />
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-white/60 text-sm mb-1.5">Nombre de places</label>
+        <div className="relative">
+          <Users size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" />
+          <input
+            type="number"
+            className="input-glass pl-9"
+            min="1"
+            max={voyage.places_disponibles}
+            value={form.nombre_places}
+            onChange={set('nombre_places')}
+            required
+          />
+        </div>
+        <p className="text-white/30 text-xs mt-1">
+          {voyage.places_disponibles} places disponibles
+        </p>
+      </div>
+
+      {/* Total */}
+      <div className="flex justify-between items-center py-3 border-t border-white/10">
+        <span className="text-white/60 text-sm">Total</span>
+        <span className="text-[#e8a045] font-bold text-lg">
+          {(Number(voyage.prix) * Number(form.nombre_places)).toLocaleString('fr-SN')} FCFA
+        </span>
       </div>
 
       <button
         type="submit"
         disabled={loading}
-        className="w-full bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white font-semibold py-3 rounded-lg transition-colors"
+        className="btn-primary w-full py-3 justify-center disabled:opacity-60"
       >
-        {loading ? 'Traitement en cours...' : 'Confirmer la reservation'}
+        {loading ? 'Réservation en cours...' : '✅ Confirmer la réservation'}
       </button>
     </form>
   );

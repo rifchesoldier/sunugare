@@ -1,30 +1,25 @@
-import { useEffect } from 'react';
+// ══════════════════════════════════════════════════════════════════
+// src/components/common/Modal.jsx
+// Composant Modal réutilisable glassmorphism
+// ══════════════════════════════════════════════════════════════════
+import { X } from 'lucide-react';
 
-export default function Modal({ isOpen, onClose, title, children, size = 'md' }) {
-  const sizes = { sm: 'max-w-sm', md: 'max-w-lg', lg: 'max-w-2xl', xl: 'max-w-4xl' };
-
-  useEffect(() => {
-    const handler = (e) => { if (e.key === 'Escape') onClose(); };
-    document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
-  }, [onClose]);
-
-  if (!isOpen) return null;
-
+export default function Modal({ title, onClose, children }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className={`relative bg-white rounded-2xl shadow-2xl w-full ${sizes[size]} mx-4 max-h-[90vh] overflow-y-auto`}>
-        <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-lg font-semibold text-gray-800">{title}</h2>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      <div className="glass-card w-full max-w-lg max-h-[90vh] overflow-y-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between p-5 border-b border-white/10">
+          <h3 className="text-white font-semibold text-lg">{title}</h3>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-xl font-bold leading-none"
+            className="text-white/40 hover:text-white transition-colors p-1"
           >
-            x
+            <X size={20} />
           </button>
         </div>
-        <div className="p-6">{children}</div>
+        {/* Body */}
+        <div className="p-5">{children}</div>
       </div>
     </div>
   );
